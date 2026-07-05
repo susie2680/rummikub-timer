@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#14213d" />
+    <title>拉密计时器</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="manifest" href="./manifest.json" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section id="setup-screen" class="screen setup-screen" aria-labelledby="setup-title">
+        <div class="setup-heading">
+          <p class="eyebrow">Rummikub Timer</p>
+          <h1 id="setup-title">拉密计时器</h1>
+          <p class="setup-copy">选择 2-4 位玩家，按顺序每人 1 分钟。</p>
+        </div>
+
+        <div class="player-count" aria-label="选择玩家人数">
+          <button class="count-button is-active" type="button" data-count="2">2 人</button>
+          <button class="count-button" type="button" data-count="3">3 人</button>
+          <button class="count-button" type="button" data-count="4">4 人</button>
+        </div>
+
+        <form id="players-form" class="players-form"></form>
+
+        <button id="start-button" class="primary-action" type="button">开始游戏</button>
+      </section>
+
+      <section id="game-screen" class="screen game-screen is-hidden" aria-live="polite">
+        <div class="top-actions" aria-label="游戏控制">
+          <button id="pause-button" class="utility-button" type="button">暂停</button>
+          <button id="restart-button" class="utility-button" type="button">重新开始</button>
+          <button id="change-button" class="utility-button" type="button">换玩家</button>
+        </div>
+
+        <div class="turn-panel">
+          <div class="turn-label">当前玩家</div>
+          <img id="current-avatar" class="current-avatar" alt="" />
+          <div id="current-name" class="current-name"></div>
+          <div id="timer-display" class="timer-display">01:00</div>
+          <div id="status-text" class="status-text">请开始出牌</div>
+        </div>
+
+        <button id="finish-turn-button" class="finish-turn" type="button">
+          出牌结束
+        </button>
+
+        <div id="player-strip" class="player-strip" aria-label="玩家顺序"></div>
+      </section>
+
+      <div id="toast" class="toast" role="status" aria-live="assertive"></div>
+    </main>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>
