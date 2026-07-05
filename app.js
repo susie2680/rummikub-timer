@@ -142,6 +142,7 @@ function startGame() {
   currentIndex = 0;
   setupScreen.classList.add("is-hidden");
   gameScreen.classList.remove("is-hidden");
+  scrollToTop();
   playerStrip.style.setProperty("--player-count", String(players.length));
   renderPlayerStrip();
   startTurn(0, "请开始出牌");
@@ -261,6 +262,7 @@ function changePlayers() {
   currentIndex = 0;
   setupScreen.classList.remove("is-hidden");
   gameScreen.classList.add("is-hidden");
+  scrollToTop();
   renderSetup();
 }
 
@@ -385,9 +387,12 @@ function findVoiceForLanguage(voices, language) {
   return (
     voices.find((voice) => voice.lang.toLowerCase() === "zh-cn") ||
     voices.find((voice) => voice.lang.toLowerCase() === "zh-hans") ||
-    voices.find((voice) => /mandarin|putonghua|普通话|china|中国|ting-ting/i.test(voice.name)) ||
-    voices.find((voice) => voice.lang.toLowerCase().startsWith("zh"))
+    voices.find((voice) => /mandarin|putonghua|普通话|china|中国|ting-ting/i.test(voice.name))
   );
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
 }
 
 function vibrate() {
