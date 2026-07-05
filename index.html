@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#14213d" />
     <title>拉密计时器</title>
-    <link rel="stylesheet" href="./styles.css?v=20260705-3" />
+    <link rel="stylesheet" href="./styles.css?v=20260705-4" />
     <link rel="manifest" href="./manifest.json" />
   </head>
   <body>
@@ -21,6 +21,15 @@
           <button class="count-button is-active" type="button" data-count="2">2 人</button>
           <button class="count-button" type="button" data-count="3">3 人</button>
           <button class="count-button" type="button" data-count="4">4 人</button>
+        </div>
+
+        <div class="voice-language" aria-label="选择语音语言">
+          <div class="voice-language-label">语音语言</div>
+          <div class="voice-language-options">
+            <button class="language-button is-active" type="button" data-language="mandarin">普通话</button>
+            <button class="language-button" type="button" data-language="cantonese">粤语</button>
+            <button class="language-button" type="button" data-language="english">English</button>
+          </div>
         </div>
 
         <form id="players-form" class="players-form"></form>
@@ -53,6 +62,6 @@
       <div id="toast" class="toast" role="status" aria-live="assertive"></div>
     </main>
 
-    <script src="./app.js?v=20260705-3" defer></script>
+    <script src="./app.js?v=20260705-4" defer></script>
   </body>
 </html>

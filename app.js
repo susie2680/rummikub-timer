@@ -2,6 +2,24 @@ const TURN_SECONDS = 60;
 const PLAYER_LIMITS = { min: 2, max: 4 };
 const WARNING_SECONDS = 10;
 
+const voiceLanguageOptions = {
+  mandarin: {
+    lang: "zh-CN",
+    next: (name) => `到下一个玩家，${name}`,
+    timeout: (name) => `超时，罚牌2张，到下一个玩家，${name}`,
+  },
+  cantonese: {
+    lang: "zh-HK",
+    next: (name) => `到下一個玩家，${name}`,
+    timeout: (name) => `超時，罰牌2張，到下一個玩家，${name}`,
+  },
+  english: {
+    lang: "en-US",
+    next: (name) => `Next player, ${name}`,
+    timeout: (name) => `Time out. Draw two tiles. Next player, ${name}`,
+  },
+};
+
 const avatarSeeds = [
   { id: "dad", label: "爸爸", face: "爸", fill: "#457b9d", accent: "#f4a261" },
   { id: "mom", label: "妈妈", face: "妈", fill: "#e76f51", accent: "#2a9d8f" },
@@ -19,6 +37,7 @@ const setupScreen = document.querySelector("#setup-screen");
 const gameScreen = document.querySelector("#game-screen");
 const playersForm = document.querySelector("#players-form");
 const countButtons = document.querySelectorAll(".count-button");
+const languageButtons = document.querySelectorAll(".language-button");
 const startButton = document.querySelector("#start-button");
 const currentAvatar = document.querySelector("#current-avatar");
 const currentName = document.querySelector("#current-name");
@@ -41,7 +60,8 @@ let isPaused = false;
 let toastId = 0;
 let audioContext = null;
 let lastWarningSecond = null;
-let mandarinVoice = null;
+let selectedVoiceLanguage = "mandarin";
+let selectedVoice = null;
 
 const avatars = avatarSeeds.map((avatar) => ({
   ...avatar,
@@ -185,7 +205,7 @@ function updateTurnView() {
 function finishTurn() {
   const nextIndex = getNextIndex();
   const nextPlayer = players[nextIndex];
-  speak(`到下一个玩家，${nextPlayer.name}`);
+  speakNextPlayer(nextPlayer.name);
   startTurn(nextIndex, "轮到下一位");
 }
 
@@ -196,7 +216,7 @@ function handleTimeout() {
   const nextPlayer = players[nextIndex];
   vibrate();
   playTimeoutTone();
-  speak(`超时，罚牌2张，到下一个玩家，${nextPlayer.name}`);
+  speakTimeout(nextPlayer.name);
   showToast(`${timedOutPlayer.name} 超时，轮到 ${nextPlayer.name}`);
   startTurn(nextIndex, "上一位超时，自动切换");
 }
@@ -309,15 +329,26 @@ function playTone({ frequency, duration, volume }) {
   oscillator.stop(now + duration + 0.03);
 }
 
+function speakNextPlayer(nextPlayerName) {
+  const option = voiceLanguageOptions[selectedVoiceLanguage] || voiceLanguageOptions.mandarin;
+  speak(option.next(nextPlayerName));
+}
+
+function speakTimeout(nextPlayerName) {
+  const option = voiceLanguageOptions[selectedVoiceLanguage] || voiceLanguageOptions.mandarin;
+  speak(option.timeout(nextPlayerName));
+}
+
 function speak(message) {
   if (!("speechSynthesis" in window)) return;
 
-  updateMandarinVoice();
+  updateSelectedVoice();
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(message);
-  utterance.lang = "zh-CN";
-  if (mandarinVoice) {
-    utterance.voice = mandarinVoice;
+  const option = voiceLanguageOptions[selectedVoiceLanguage] || voiceLanguageOptions.mandarin;
+  utterance.lang = option.lang;
+  if (selectedVoice) {
+    utterance.voice = selectedVoice;
   }
   utterance.rate = 1;
   utterance.pitch = 1;
@@ -325,17 +356,38 @@ function speak(message) {
   window.speechSynthesis.speak(utterance);
 }
 
-function updateMandarinVoice() {
+function updateSelectedVoice() {
   if (!("speechSynthesis" in window)) return;
 
   const voices = window.speechSynthesis.getVoices();
   if (!voices.length) return;
 
-  mandarinVoice =
+  selectedVoice = findVoiceForLanguage(voices, selectedVoiceLanguage);
+}
+
+function findVoiceForLanguage(voices, language) {
+  if (language === "cantonese") {
+    return (
+      voices.find((voice) => voice.lang.toLowerCase() === "zh-hk") ||
+      voices.find((voice) => /cantonese|yue|粵語|粤语|hong kong|香港/i.test(voice.name)) ||
+      voices.find((voice) => voice.lang.toLowerCase().includes("hk"))
+    );
+  }
+
+  if (language === "english") {
+    return (
+      voices.find((voice) => voice.lang.toLowerCase() === "en-us") ||
+      voices.find((voice) => voice.lang.toLowerCase() === "en-gb") ||
+      voices.find((voice) => voice.lang.toLowerCase().startsWith("en"))
+    );
+  }
+
+  return (
     voices.find((voice) => voice.lang.toLowerCase() === "zh-cn") ||
     voices.find((voice) => voice.lang.toLowerCase() === "zh-hans") ||
     voices.find((voice) => /mandarin|putonghua|普通话|china|中国|ting-ting/i.test(voice.name)) ||
-    voices.find((voice) => voice.lang.toLowerCase().startsWith("zh"));
+    voices.find((voice) => voice.lang.toLowerCase().startsWith("zh"))
+  );
 }
 
 function vibrate() {
@@ -351,6 +403,16 @@ countButtons.forEach((button) => {
       Math.max(PLAYER_LIMITS.min, Number(button.dataset.count)),
     );
     renderSetup();
+  });
+});
+
+languageButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    selectedVoiceLanguage = button.dataset.language || "mandarin";
+    languageButtons.forEach((item) => {
+      item.classList.toggle("is-active", item === button);
+    });
+    updateSelectedVoice();
   });
 });
 
@@ -388,11 +450,11 @@ document.addEventListener("visibilitychange", () => {
 
 if ("speechSynthesis" in window) {
   if (typeof window.speechSynthesis.addEventListener === "function") {
-    window.speechSynthesis.addEventListener("voiceschanged", updateMandarinVoice);
+    window.speechSynthesis.addEventListener("voiceschanged", updateSelectedVoice);
   } else {
-    window.speechSynthesis.onvoiceschanged = updateMandarinVoice;
+    window.speechSynthesis.onvoiceschanged = updateSelectedVoice;
   }
-  updateMandarinVoice();
+  updateSelectedVoice();
 }
 
 renderSetup();

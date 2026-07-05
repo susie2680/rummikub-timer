@@ -116,6 +116,42 @@ h1 {
   color: white;
 }
 
+.voice-language {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 12px;
+}
+
+.voice-language-label {
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.voice-language-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.language-button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.language-button.is-active {
+  border-color: var(--green);
+  background: rgba(42, 157, 143, 0.14);
+  color: var(--ink);
+}
+
 .players-form {
   display: grid;
   gap: 14px;
@@ -222,6 +258,7 @@ h1 {
 
 .utility-button:active,
 .count-button:active,
+.language-button:active,
 .primary-action:active,
 .finish-turn:active {
   transform: translateY(1px);
