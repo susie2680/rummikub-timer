@@ -209,6 +209,8 @@ function togglePause() {
   if (!players.length) return;
 
   if (isPaused) {
+    // 继续时用暂停保存的剩余时间重建结束点，避免按旧结束时间跳秒。
+    turnEndsAt = Date.now() + remainingMs;
     isPaused = false;
     pauseButton.textContent = "暂停";
     finishTurnButton.disabled = false;
