@@ -1,5 +1,6 @@
 const TURN_SECONDS = 60;
 const PLAYER_LIMITS = { min: 2, max: 4 };
+const WARNING_SECONDS = 10;
 
 const avatarSeeds = [
   { id: "dad", label: "爸爸", face: "爸", fill: "#457b9d", accent: "#f4a261" },
@@ -38,6 +39,8 @@ let turnEndsAt = 0;
 let remainingMs = TURN_SECONDS * 1000;
 let isPaused = false;
 let toastId = 0;
+let audioContext = null;
+let lastWarningSecond = null;
 
 const avatars = avatarSeeds.map((avatar) => ({
   ...avatar,
@@ -112,6 +115,7 @@ function collectPlayers() {
 }
 
 function startGame() {
+  unlockAudio();
   players = collectPlayers();
   currentIndex = 0;
   setupScreen.classList.add("is-hidden");
@@ -127,6 +131,7 @@ function startTurn(index, message) {
   remainingMs = TURN_SECONDS * 1000;
   // 先写入本轮结束时间，再渲染界面，避免刷新时误判为超时。
   turnEndsAt = Date.now() + remainingMs;
+  lastWarningSecond = null;
   isPaused = false;
   pauseButton.textContent = "暂停";
   finishTurnButton.disabled = false;
@@ -156,6 +161,11 @@ function updateTimerDisplay() {
   timerDisplay.textContent = `${minutesText}:${secondsText}`;
   timerDisplay.classList.toggle("is-danger", seconds <= 10);
 
+  if (!isPaused && seconds > 0 && seconds <= WARNING_SECONDS && seconds !== lastWarningSecond) {
+    lastWarningSecond = seconds;
+    playWarningBeep(seconds);
+  }
+
   if (remainingMs <= 0 && !isPaused) {
     handleTimeout();
   }
@@ -171,6 +181,7 @@ function updateTurnView() {
 }
 
 function finishTurn() {
+  speak("到下一个玩家");
   const nextIndex = getNextIndex();
   startTurn(nextIndex, "轮到下一位");
 }
@@ -181,6 +192,8 @@ function handleTimeout() {
   const nextIndex = getNextIndex();
   const nextPlayer = players[nextIndex];
   vibrate();
+  playTimeoutTone();
+  speak("超时，罚牌2张，到下一个玩家");
   showToast(`${timedOutPlayer.name} 超时，轮到 ${nextPlayer.name}`);
   startTurn(nextIndex, "上一位超时，自动切换");
 }
@@ -212,6 +225,7 @@ function togglePause() {
 
 function restartGame() {
   if (!players.length) return;
+  unlockAudio();
   showToast("已从玩家 1 重新开始");
   startTurn(0, "重新开始");
 }
@@ -243,6 +257,63 @@ function showToast(message) {
   toastId = window.setTimeout(() => {
     toast.classList.remove("is-visible");
   }, 1800);
+}
+
+function unlockAudio() {
+  if (!audioContext) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioContext = new AudioContextClass();
+    }
+  }
+
+  if (audioContext?.state === "suspended") {
+    audioContext.resume();
+  }
+}
+
+function playWarningBeep(seconds) {
+  playTone({
+    frequency: seconds <= 3 ? 1046 : 880,
+    duration: 0.12,
+    volume: seconds <= 3 ? 0.16 : 0.1,
+  });
+}
+
+function playTimeoutTone() {
+  playTone({ frequency: 220, duration: 0.42, volume: 0.18 });
+}
+
+function playTone({ frequency, duration, volume }) {
+  unlockAudio();
+  if (!audioContext) return;
+
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  const now = audioContext.currentTime;
+
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(frequency, now);
+  gain.gain.setValueAtTime(0.001, now);
+  gain.gain.exponentialRampToValueAtTime(volume, now + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+  oscillator.connect(gain);
+  gain.connect(audioContext.destination);
+  oscillator.start(now);
+  oscillator.stop(now + duration + 0.03);
+}
+
+function speak(message) {
+  if (!("speechSynthesis" in window)) return;
+
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(message);
+  utterance.lang = "zh-CN";
+  utterance.rate = 1;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+  window.speechSynthesis.speak(utterance);
 }
 
 function vibrate() {
