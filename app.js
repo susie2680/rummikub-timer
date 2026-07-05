@@ -20,18 +20,163 @@ const voiceLanguageOptions = {
   },
 };
 
-const avatarSeeds = [
-  { id: "dad", label: "爸爸", face: "爸", fill: "#457b9d", accent: "#f4a261" },
-  { id: "mom", label: "妈妈", face: "妈", fill: "#e76f51", accent: "#2a9d8f" },
-  { id: "brother", label: "哥哥", face: "哥", fill: "#2a9d8f", accent: "#f4a261" },
-  { id: "sister", label: "妹妹", face: "妹", fill: "#f4a261", accent: "#457b9d" },
-  { id: "grandpa", label: "爷爷", face: "爷", fill: "#6d597a", accent: "#eaac8b" },
-  { id: "grandma", label: "奶奶", face: "奶", fill: "#b56576", accent: "#84a59d" },
-  { id: "kid", label: "小宝", face: "宝", fill: "#4d908e", accent: "#f9c74f" },
-  { id: "guest", label: "朋友", face: "友", fill: "#577590", accent: "#f3722c" },
-];
+const uiText = {
+  mandarin: {
+    documentLang: "zh-CN",
+    pageTitle: "拉密计时器",
+    heading: "拉密计时器",
+    setupCopy: "选择 2-4 位玩家，按顺序每人 1 分钟。",
+    playerCounts: ["2 人", "3 人", "4 人"],
+    playerCountAria: "选择玩家人数",
+    voiceLanguage: "语音语言",
+    voiceLanguageAria: "选择语音语言",
+    playerTitle: (index) => `玩家 ${index + 1}`,
+    playerNameAria: (index) => `玩家 ${index + 1} 名字`,
+    playerImageAria: (index) => `玩家 ${index + 1} 图片`,
+    startButton: "开始游戏",
+    gameControlsAria: "游戏控制",
+    pause: "暂停",
+    resume: "继续",
+    restart: "重新开始",
+    changePlayers: "换玩家",
+    turnLabel: "当前玩家",
+    statusStart: "请开始出牌",
+    statusNext: "轮到下一位",
+    statusTimeout: "上一位超时，自动切换",
+    statusPaused: "已暂停",
+    statusResume: "继续计时",
+    statusRestart: "重新开始",
+    finishTurn: "出牌结束",
+    playerOrderAria: "玩家顺序",
+    restartToast: "已从玩家 1 重新开始",
+    timeoutToast: (timedOut, next) => `${timedOut} 超时，轮到 ${next}`,
+    avatarAlt: (name) => `${name} 的图片`,
+    fallbackPlayer: (index) => `玩家 ${index + 1}`,
+  },
+  cantonese: {
+    documentLang: "zh-HK",
+    pageTitle: "拉密計時器",
+    heading: "拉密計時器",
+    setupCopy: "選擇 2-4 位玩家，按順序每人 1 分鐘。",
+    playerCounts: ["2 人", "3 人", "4 人"],
+    playerCountAria: "選擇玩家人數",
+    voiceLanguage: "語音語言",
+    voiceLanguageAria: "選擇語音語言",
+    playerTitle: (index) => `玩家 ${index + 1}`,
+    playerNameAria: (index) => `玩家 ${index + 1} 名字`,
+    playerImageAria: (index) => `玩家 ${index + 1} 圖片`,
+    startButton: "開始遊戲",
+    gameControlsAria: "遊戲控制",
+    pause: "暫停",
+    resume: "繼續",
+    restart: "重新開始",
+    changePlayers: "換玩家",
+    turnLabel: "目前玩家",
+    statusStart: "請開始出牌",
+    statusNext: "到下一位",
+    statusTimeout: "上一位超時，自動切換",
+    statusPaused: "已暫停",
+    statusResume: "繼續計時",
+    statusRestart: "重新開始",
+    finishTurn: "出牌結束",
+    playerOrderAria: "玩家順序",
+    restartToast: "已由玩家 1 重新開始",
+    timeoutToast: (timedOut, next) => `${timedOut} 超時，到 ${next}`,
+    avatarAlt: (name) => `${name} 的圖片`,
+    fallbackPlayer: (index) => `玩家 ${index + 1}`,
+  },
+  english: {
+    documentLang: "en",
+    pageTitle: "Rummikub Timer",
+    heading: "Rummikub Timer",
+    setupCopy: "Choose 2-4 players. Each turn is 1 minute.",
+    playerCounts: ["2 Players", "3 Players", "4 Players"],
+    playerCountAria: "Choose player count",
+    voiceLanguage: "Voice Language",
+    voiceLanguageAria: "Choose voice language",
+    playerTitle: (index) => `Player ${index + 1}`,
+    playerNameAria: (index) => `Player ${index + 1} name`,
+    playerImageAria: (index) => `Player ${index + 1} avatar`,
+    startButton: "Start Game",
+    gameControlsAria: "Game controls",
+    pause: "Pause",
+    resume: "Resume",
+    restart: "Restart",
+    changePlayers: "Players",
+    turnLabel: "Current Player",
+    statusStart: "Start your turn",
+    statusNext: "Next player",
+    statusTimeout: "Timed out, switching",
+    statusPaused: "Paused",
+    statusResume: "Timer resumed",
+    statusRestart: "Restarted",
+    finishTurn: "End Turn",
+    playerOrderAria: "Player order",
+    restartToast: "Restarted from player 1",
+    timeoutToast: (timedOut, next) => `${timedOut} timed out. Next: ${next}`,
+    avatarAlt: (name) => `${name}'s avatar`,
+    fallbackPlayer: (index) => `Player ${index + 1}`,
+  },
+};
 
-const defaultNames = ["爸爸", "妈妈", "哥哥", "妹妹"];
+const avatarSeeds = [
+  {
+    id: "dad",
+    labels: { mandarin: "爸爸", cantonese: "爸爸", english: "Dad" },
+    faces: { mandarin: "爸", cantonese: "爸", english: "D" },
+    fill: "#457b9d",
+    accent: "#f4a261",
+  },
+  {
+    id: "mom",
+    labels: { mandarin: "妈妈", cantonese: "媽媽", english: "Mom" },
+    faces: { mandarin: "妈", cantonese: "媽", english: "M" },
+    fill: "#e76f51",
+    accent: "#2a9d8f",
+  },
+  {
+    id: "brother",
+    labels: { mandarin: "哥哥", cantonese: "哥哥", english: "Brother" },
+    faces: { mandarin: "哥", cantonese: "哥", english: "B" },
+    fill: "#2a9d8f",
+    accent: "#f4a261",
+  },
+  {
+    id: "sister",
+    labels: { mandarin: "妹妹", cantonese: "妹妹", english: "Sister" },
+    faces: { mandarin: "妹", cantonese: "妹", english: "S" },
+    fill: "#f4a261",
+    accent: "#457b9d",
+  },
+  {
+    id: "grandpa",
+    labels: { mandarin: "爷爷", cantonese: "爺爺", english: "Grandpa" },
+    faces: { mandarin: "爷", cantonese: "爺", english: "GP" },
+    fill: "#6d597a",
+    accent: "#eaac8b",
+  },
+  {
+    id: "grandma",
+    labels: { mandarin: "奶奶", cantonese: "嫲嫲", english: "Grandma" },
+    faces: { mandarin: "奶", cantonese: "嫲", english: "GM" },
+    fill: "#b56576",
+    accent: "#84a59d",
+  },
+  {
+    id: "kid",
+    labels: { mandarin: "小宝", cantonese: "小寶", english: "Kid" },
+    faces: { mandarin: "宝", cantonese: "寶", english: "K" },
+    fill: "#4d908e",
+    accent: "#f9c74f",
+  },
+  {
+    id: "guest",
+    labels: { mandarin: "朋友", cantonese: "朋友", english: "Friend" },
+    faces: { mandarin: "友", cantonese: "友", english: "F" },
+    fill: "#577590",
+    accent: "#f3722c",
+  },
+];
 
 const setupScreen = document.querySelector("#setup-screen");
 const gameScreen = document.querySelector("#game-screen");
@@ -62,11 +207,30 @@ let audioContext = null;
 let lastWarningSecond = null;
 let selectedVoiceLanguage = "mandarin";
 let selectedVoice = null;
+let avatars = buildLocalizedAvatars();
 
-const avatars = avatarSeeds.map((avatar) => ({
-  ...avatar,
-  src: makeAvatarSvg(avatar),
-}));
+function getText() {
+  return uiText[selectedVoiceLanguage] || uiText.mandarin;
+}
+
+function getDefaultNames() {
+  return avatarSeeds.slice(0, PLAYER_LIMITS.max).map((avatar) => avatar.labels[selectedVoiceLanguage]);
+}
+
+function buildLocalizedAvatars() {
+  return avatarSeeds.map((avatar) => {
+    const localized = {
+      ...avatar,
+      label: avatar.labels[selectedVoiceLanguage],
+      face: avatar.faces[selectedVoiceLanguage],
+    };
+
+    return {
+      ...localized,
+      src: makeAvatarSvg(localized),
+    };
+  });
+}
 
 function makeAvatarSvg({ label, face, fill, accent }) {
   const svg = `
@@ -84,9 +248,15 @@ function makeAvatarSvg({ label, face, fill, accent }) {
 }
 
 function renderSetup() {
+  const text = getText();
+  avatars = buildLocalizedAvatars();
+  renderStaticText();
+
   countButtons.forEach((button) => {
     const isActive = Number(button.dataset.count) === selectedCount;
+    const labelIndex = Number(button.dataset.count) - PLAYER_LIMITS.min;
     button.classList.toggle("is-active", isActive);
+    button.textContent = text.playerCounts[labelIndex];
   });
 
   playersForm.innerHTML = "";
@@ -95,10 +265,10 @@ function renderSetup() {
     card.className = "player-card";
     card.innerHTML = `
       <div class="player-card-header">
-        <div class="player-card-title">玩家 ${index + 1}</div>
-        <input class="name-input" name="player-name-${index}" maxlength="8" value="${defaultNames[index]}" aria-label="玩家 ${index + 1} 名字" />
+        <div class="player-card-title">${text.playerTitle(index)}</div>
+        <input class="name-input" name="player-name-${index}" maxlength="12" value="${getDefaultNames()[index]}" aria-label="${text.playerNameAria(index)}" />
       </div>
-      <div class="avatar-grid" role="radiogroup" aria-label="玩家 ${index + 1} 图片"></div>
+      <div class="avatar-grid" role="radiogroup" aria-label="${text.playerImageAria(index)}"></div>
     `;
 
     const avatarGrid = card.querySelector(".avatar-grid");
@@ -123,6 +293,7 @@ function renderSetup() {
 }
 
 function collectPlayers() {
+  const text = getText();
   return Array.from(playersForm.querySelectorAll(".player-card")).map((card, index) => {
     const input = card.querySelector(".name-input");
     const selected = card.querySelector(".avatar-option.is-selected");
@@ -130,10 +301,30 @@ function collectPlayers() {
 
     return {
       id: crypto.randomUUID(),
-      name: input.value.trim() || defaultNames[index] || `玩家 ${index + 1}`,
+      name: input.value.trim() || getDefaultNames()[index] || text.fallbackPlayer(index),
       avatar,
     };
   });
+}
+
+function renderStaticText() {
+  const text = getText();
+
+  document.documentElement.lang = text.documentLang;
+  document.title = text.pageTitle;
+  document.querySelector("#setup-title").textContent = text.heading;
+  document.querySelector(".setup-copy").textContent = text.setupCopy;
+  document.querySelector(".player-count").setAttribute("aria-label", text.playerCountAria);
+  document.querySelector(".voice-language").setAttribute("aria-label", text.voiceLanguageAria);
+  document.querySelector(".voice-language-label").textContent = text.voiceLanguage;
+  startButton.textContent = text.startButton;
+  document.querySelector(".top-actions").setAttribute("aria-label", text.gameControlsAria);
+  pauseButton.textContent = isPaused ? text.resume : text.pause;
+  restartButton.textContent = text.restart;
+  changeButton.textContent = text.changePlayers;
+  document.querySelector(".turn-label").textContent = text.turnLabel;
+  finishTurnButton.textContent = text.finishTurn;
+  playerStrip.setAttribute("aria-label", text.playerOrderAria);
 }
 
 function startGame() {
@@ -145,7 +336,7 @@ function startGame() {
   scrollToTop();
   playerStrip.style.setProperty("--player-count", String(players.length));
   renderPlayerStrip();
-  startTurn(0, "请开始出牌");
+  startTurn(0, getText().statusStart);
 }
 
 function startTurn(index, message) {
@@ -156,7 +347,7 @@ function startTurn(index, message) {
   turnEndsAt = Date.now() + remainingMs;
   lastWarningSecond = null;
   isPaused = false;
-  pauseButton.textContent = "暂停";
+  pauseButton.textContent = getText().pause;
   finishTurnButton.disabled = false;
   statusText.textContent = message;
   updateTurnView();
@@ -197,7 +388,7 @@ function updateTimerDisplay() {
 function updateTurnView() {
   const player = players[currentIndex];
   currentAvatar.src = player.avatar.src;
-  currentAvatar.alt = `${player.name} 的图片`;
+  currentAvatar.alt = getText().avatarAlt(player.name);
   currentName.textContent = player.name;
   renderPlayerStrip();
   updateTimerDisplay();
@@ -207,7 +398,7 @@ function finishTurn() {
   const nextIndex = getNextIndex();
   const nextPlayer = players[nextIndex];
   speakNextPlayer(nextPlayer.name);
-  startTurn(nextIndex, "轮到下一位");
+  startTurn(nextIndex, getText().statusNext);
 }
 
 function handleTimeout() {
@@ -218,8 +409,8 @@ function handleTimeout() {
   vibrate();
   playTimeoutTone();
   speakTimeout(nextPlayer.name);
-  showToast(`${timedOutPlayer.name} 超时，轮到 ${nextPlayer.name}`);
-  startTurn(nextIndex, "上一位超时，自动切换");
+  showToast(getText().timeoutToast(timedOutPlayer.name, nextPlayer.name));
+  startTurn(nextIndex, getText().statusTimeout);
 }
 
 function getNextIndex() {
@@ -233,18 +424,18 @@ function togglePause() {
     // 继续时用暂停保存的剩余时间重建结束点，避免按旧结束时间跳秒。
     turnEndsAt = Date.now() + remainingMs;
     isPaused = false;
-    pauseButton.textContent = "暂停";
+    pauseButton.textContent = getText().pause;
     finishTurnButton.disabled = false;
-    statusText.textContent = "继续计时";
+    statusText.textContent = getText().statusResume;
     startTimer();
     return;
   }
 
   remainingMs = Math.max(0, turnEndsAt - Date.now());
   isPaused = true;
-  pauseButton.textContent = "继续";
+  pauseButton.textContent = getText().resume;
   finishTurnButton.disabled = true;
-  statusText.textContent = "已暂停";
+  statusText.textContent = getText().statusPaused;
   stopTimer();
   updateTimerDisplay();
 }
@@ -252,8 +443,8 @@ function togglePause() {
 function restartGame() {
   if (!players.length) return;
   unlockAudio();
-  showToast("已从玩家 1 重新开始");
-  startTurn(0, "重新开始");
+  showToast(getText().restartToast);
+  startTurn(0, getText().statusRestart);
 }
 
 function changePlayers() {
@@ -431,6 +622,7 @@ languageButtons.forEach((button) => {
       item.classList.toggle("is-active", item === button);
     });
     updateSelectedVoice();
+    renderSetup();
   });
 });
 
