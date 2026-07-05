@@ -41,6 +41,7 @@ let isPaused = false;
 let toastId = 0;
 let audioContext = null;
 let lastWarningSecond = null;
+let mandarinVoice = null;
 
 const avatars = avatarSeeds.map((avatar) => ({
   ...avatar,
@@ -87,6 +88,7 @@ function renderSetup() {
       option.className = "avatar-option";
       option.dataset.playerIndex = String(index);
       option.dataset.avatarId = avatar.id;
+      option.dataset.avatarLabel = avatar.label;
       option.setAttribute("role", "radio");
       option.setAttribute("aria-checked", String(avatarIndex === index));
       option.innerHTML = `<img src="${avatar.src}" alt="" /><span>${avatar.label}</span>`;
@@ -181,8 +183,9 @@ function updateTurnView() {
 }
 
 function finishTurn() {
-  speak("到下一个玩家");
   const nextIndex = getNextIndex();
+  const nextPlayer = players[nextIndex];
+  speak(`到下一个玩家，${nextPlayer.name}`);
   startTurn(nextIndex, "轮到下一位");
 }
 
@@ -193,7 +196,7 @@ function handleTimeout() {
   const nextPlayer = players[nextIndex];
   vibrate();
   playTimeoutTone();
-  speak("超时，罚牌2张，到下一个玩家");
+  speak(`超时，罚牌2张，到下一个玩家，${nextPlayer.name}`);
   showToast(`${timedOutPlayer.name} 超时，轮到 ${nextPlayer.name}`);
   startTurn(nextIndex, "上一位超时，自动切换");
 }
@@ -307,13 +310,30 @@ function playTone({ frequency, duration, volume }) {
 function speak(message) {
   if (!("speechSynthesis" in window)) return;
 
+  updateMandarinVoice();
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(message);
   utterance.lang = "zh-CN";
+  if (mandarinVoice) {
+    utterance.voice = mandarinVoice;
+  }
   utterance.rate = 1;
   utterance.pitch = 1;
   utterance.volume = 1;
   window.speechSynthesis.speak(utterance);
+}
+
+function updateMandarinVoice() {
+  if (!("speechSynthesis" in window)) return;
+
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return;
+
+  mandarinVoice =
+    voices.find((voice) => voice.lang.toLowerCase() === "zh-cn") ||
+    voices.find((voice) => voice.lang.toLowerCase() === "zh-hans") ||
+    voices.find((voice) => /mandarin|putonghua|普通话|china|中国|ting-ting/i.test(voice.name)) ||
+    voices.find((voice) => voice.lang.toLowerCase().startsWith("zh"));
 }
 
 function vibrate() {
@@ -336,6 +356,10 @@ playersForm.addEventListener("click", (event) => {
   const option = event.target.closest(".avatar-option");
   if (!option) return;
 
+  syncAvatarSelection(option);
+});
+
+function syncAvatarSelection(option) {
   const card = option.closest(".player-card");
   const selectedAvatar = avatars.find((avatar) => avatar.id === option.dataset.avatarId);
   card.querySelectorAll(".avatar-option").forEach((button) => {
@@ -345,10 +369,9 @@ playersForm.addEventListener("click", (event) => {
   });
 
   // 点击头像时同步默认名字，方便手机上快速换玩家。
-  if (selectedAvatar) {
-    card.querySelector(".name-input").value = selectedAvatar.label;
-  }
-});
+  card.querySelector(".name-input").value =
+    option.dataset.avatarLabel || selectedAvatar?.label || "";
+}
 
 startButton.addEventListener("click", startGame);
 finishTurnButton.addEventListener("click", finishTurn);
@@ -360,5 +383,14 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden || isPaused || !timerId) return;
   updateTimerDisplay();
 });
+
+if ("speechSynthesis" in window) {
+  if (typeof window.speechSynthesis.addEventListener === "function") {
+    window.speechSynthesis.addEventListener("voiceschanged", updateMandarinVoice);
+  } else {
+    window.speechSynthesis.onvoiceschanged = updateMandarinVoice;
+  }
+  updateMandarinVoice();
+}
 
 renderSetup();
