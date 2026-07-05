@@ -337,11 +337,17 @@ playersForm.addEventListener("click", (event) => {
   if (!option) return;
 
   const card = option.closest(".player-card");
+  const selectedAvatar = avatars.find((avatar) => avatar.id === option.dataset.avatarId);
   card.querySelectorAll(".avatar-option").forEach((button) => {
     const isSelected = button === option;
     button.classList.toggle("is-selected", isSelected);
     button.setAttribute("aria-checked", String(isSelected));
   });
+
+  // 点击头像时同步默认名字，方便手机上快速换玩家。
+  if (selectedAvatar) {
+    card.querySelector(".name-input").value = selectedAvatar.label;
+  }
 });
 
 startButton.addEventListener("click", startGame);
