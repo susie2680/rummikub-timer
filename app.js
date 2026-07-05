@@ -4,7 +4,7 @@ const WARNING_SECONDS = 10;
 
 const voiceLanguageOptions = {
   mandarin: {
-    lang: "cmn-Hans-CN",
+    lang: "zh-CN",
     next: (name) => `到下一个玩家，${name}`,
     timeout: (name) => `超时，罚牌2张，到下一个玩家，${name}`,
   },
@@ -349,7 +349,7 @@ function speak(message) {
   const utterance = new SpeechSynthesisUtterance(message);
   const option = voiceLanguageOptions[selectedVoiceLanguage] || voiceLanguageOptions.mandarin;
   utterance.lang = option.lang;
-  if (selectedVoice) {
+  if (selectedVoice && !isBlockedVoiceForLanguage(selectedVoice, selectedVoiceLanguage)) {
     utterance.voice = selectedVoice;
   }
   utterance.rate = 1;
@@ -361,10 +361,23 @@ function speak(message) {
 function updateSelectedVoice() {
   if (!("speechSynthesis" in window)) return;
 
+  selectedVoice = null;
   const voices = window.speechSynthesis.getVoices();
   if (!voices.length) return;
 
   selectedVoice = findVoiceForLanguage(voices, selectedVoiceLanguage);
+}
+
+function isBlockedVoiceForLanguage(voice, language) {
+  return language === "mandarin" && isCantoneseVoice(voice);
+}
+
+function isCantoneseVoice(voice) {
+  return (
+    voice.lang.toLowerCase() === "zh-hk" ||
+    voice.lang.toLowerCase().includes("hk") ||
+    /cantonese|yue|粵語|粤语|hong kong|香港/i.test(voice.name)
+  );
 }
 
 function findVoiceForLanguage(voices, language) {
@@ -383,11 +396,6 @@ function findVoiceForLanguage(voices, language) {
       voices.find((voice) => voice.lang.toLowerCase().startsWith("en"))
     );
   }
-
-  const isCantoneseVoice = (voice) =>
-    voice.lang.toLowerCase() === "zh-hk" ||
-    voice.lang.toLowerCase().includes("hk") ||
-    /cantonese|yue|粵語|粤语|hong kong|香港/i.test(voice.name);
 
   return (
     voices.find((voice) => voice.lang.toLowerCase() === "zh-cn" && !isCantoneseVoice(voice)) ||
