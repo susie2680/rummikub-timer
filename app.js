@@ -4,7 +4,7 @@ const WARNING_SECONDS = 10;
 
 const voiceLanguageOptions = {
   mandarin: {
-    lang: "zh-CN",
+    lang: "cmn-Hans-CN",
     next: (name) => `到下一个玩家，${name}`,
     timeout: (name) => `超时，罚牌2张，到下一个玩家，${name}`,
   },
@@ -384,10 +384,15 @@ function findVoiceForLanguage(voices, language) {
     );
   }
 
+  const isCantoneseVoice = (voice) =>
+    voice.lang.toLowerCase() === "zh-hk" ||
+    voice.lang.toLowerCase().includes("hk") ||
+    /cantonese|yue|粵語|粤语|hong kong|香港/i.test(voice.name);
+
   return (
-    voices.find((voice) => voice.lang.toLowerCase() === "zh-cn") ||
-    voices.find((voice) => voice.lang.toLowerCase() === "zh-hans") ||
-    voices.find((voice) => /mandarin|putonghua|普通话|china|中国|ting-ting/i.test(voice.name))
+    voices.find((voice) => voice.lang.toLowerCase() === "zh-cn" && !isCantoneseVoice(voice)) ||
+    voices.find((voice) => voice.lang.toLowerCase() === "zh-hans" && !isCantoneseVoice(voice)) ||
+    voices.find((voice) => /mandarin|putonghua|普通话|ting-ting/i.test(voice.name) && !isCantoneseVoice(voice))
   );
 }
 
